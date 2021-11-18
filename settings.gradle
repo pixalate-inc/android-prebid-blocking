@@ -1,0 +1,3 @@
+include ':prebid'
+include ':app'
+rootProject.name = "Mobile SDK"
