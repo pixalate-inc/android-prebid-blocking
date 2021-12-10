@@ -44,9 +44,9 @@ public final class PixalateBlocking {
         NEVER_BLOCK
     }
 
-    static final String TAG = "PXPrebid";
+    static final String TAG = "PixalateBlocking";
 
-    private static final String baseFraudURL = "https://api.adrta.com/services/2012/Suspect/get?";
+    private static final String baseFraudURL = "https://dev-api.pixalate.com/api/v2/hosts/rpc/suspect?";
 
     static LogLevel logLevel = LogLevel.INFO;
 
@@ -106,6 +106,7 @@ public final class PixalateBlocking {
         globalConfig = config;
     }
 
+    @SuppressWarnings( "unused" )
     public static BlockingConfig getGlobalConfig () {
         return globalConfig;
     }
@@ -131,7 +132,7 @@ public final class PixalateBlocking {
      * @param listener   The listener will be called with the results of the request.
      */
     public static void requestBlockStatus ( BlockingMode mode, BlockingStatusListener listener ) throws IllegalStateException {
-        SendPreBidBlockingRequestTask task = new SendPreBidBlockingRequestTask( listener );
+        SendPreBidBlockingRequestTask task = new SendPreBidBlockingRequestTask( globalConfig.getTTL(), globalConfig.getBlockingThreshold(), listener );
 
         if( !initialized ) {
             throw new IllegalStateException( "You must set the global blocking config using `Pixalate.initialize` before requesting block status." );
@@ -143,7 +144,7 @@ public final class PixalateBlocking {
             throw new IllegalStateException( "Context is null, cannot proceed." );
         }
 
-        task.execute( new BlockingRequestParameters( ctx, BlockingMode.DEFAULT, globalConfig.getBlockingStrategy() ) );
+        task.execute( new BlockingRequestParameters( ctx, globalConfig.getApiKey(), globalConfig.getRequestTimeout(), mode, globalConfig.getBlockingStrategy() ) );
     }
 
 
@@ -176,11 +177,15 @@ public final class PixalateBlocking {
         WeakReference<Context> context;
         BlockingStrategy strategy;
         BlockingMode mode;
+        String apiKey;
+        int timeout;
 
-        public BlockingRequestParameters ( Context context, BlockingMode mode, BlockingStrategy strategy ) {
+        public BlockingRequestParameters ( Context context, String apiKey, int timeout, BlockingMode mode, BlockingStrategy strategy ) {
             this.context = new WeakReference<>( context );
             this.strategy = strategy;
             this.mode = mode;
+            this.apiKey = apiKey;
+            this.timeout = timeout;
         }
     }
 
@@ -229,9 +234,13 @@ public final class PixalateBlocking {
     static class SendPreBidBlockingRequestTask extends AsyncTask<BlockingRequestParameters,Integer,BlockingResult> {
 
         BlockingStatusListener listener;
+        double threshold;
+        long ttl;
 
-        public SendPreBidBlockingRequestTask ( BlockingStatusListener listener ) {
+        public SendPreBidBlockingRequestTask ( long ttl, double blockingThreshold, BlockingStatusListener listener ) {
+            this.threshold = blockingThreshold;
             this.listener = listener;
+            this.ttl = ttl;
         }
 
         @Override
@@ -239,6 +248,8 @@ public final class PixalateBlocking {
             BlockingRequestParameters param = parameters[ 0 ];
             Context context = param.context.get();
 
+            int timeout      = param.timeout;
+            String apiKey    = param.apiKey;
             String deviceId  = param.strategy.getDeviceID( context );
             String ipv4      = param.strategy.getIPv4( context );
             String ipv6      = param.strategy.getIPv6( context );
@@ -263,6 +274,7 @@ public final class PixalateBlocking {
             }
 
             if( mode != BlockingMode.DEFAULT ) {
+                LogDebug( "Using custom blocking mode: " + mode );
                 BlockingResult result = new BlockingResult();
                 result.parameters = cacheParams;
                 result.probability = mode == BlockingMode.ALWAYS_BLOCK ? 1 : 0;
@@ -281,7 +293,8 @@ public final class PixalateBlocking {
                         connection = (HttpsURLConnection) url.openConnection();
 
                         connection.setRequestMethod( "GET" );
-                        connection.setConnectTimeout( globalConfig.getRequestTimeout() );
+                        connection.setConnectTimeout( timeout );
+                        if( apiKey != null ) connection.setRequestProperty( "X-Api-Key", apiKey );
 
                         int connStatus = connection.getResponseCode();
 
@@ -393,12 +406,15 @@ public final class PixalateBlocking {
                 LogError( String.format( "Error getting data: %s %s", result.errorCode, result.message ) );
                 listener.onError( result.errorCode, result.message );
             } else {
-                result.time = new Date().getTime() + globalConfig.getTTL();
-                cachedResults.put( result.parameters, result );
-                BlockingResult res = cachedResults.get( result.parameters );
-                LogDebug( String.valueOf( res ) );
+                LogDebug( String.format( "Got blocking result:\nStatus: %s\nError: %s\nProbability: %s", result.errorCode, result.message, result.probability ) );
 
-                if( result.probability > globalConfig.getBlockingThreshold() ) {
+                if( ttl > 0 ) {
+                    LogDebug( String.format( "Caching result for %sms", ttl ) );
+                    result.time = new Date().getTime() + ttl;
+                    cachedResults.put( result.parameters, result );
+                }
+
+                if( result.probability > threshold ) {
                     listener.onBlock();
                 } else {
                     listener.onAllow();

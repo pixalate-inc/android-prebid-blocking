@@ -2,7 +2,13 @@ package com.pixalate.mobile;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 
+import com.mopub.common.MoPub;
+import com.mopub.common.SdkConfiguration;
+import com.mopub.common.SdkInitializationListener;
+import com.mopub.common.logging.MoPubLog;
+import com.mopub.mobileads.MoPubView;
 import com.pixalate.prebid.BlockingStatusListener;
 import com.pixalate.prebid.DefaultBlockingStrategy;
 import com.pixalate.prebid.PixalateBlocking;
@@ -13,6 +19,10 @@ import androidx.appcompat.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity {
 
+    static final String TAG = "PixalateBlockingExample";
+
+    private MoPubView adView;
+
     @Override
     protected void onCreate ( Bundle savedInstanceState ) {
         super.onCreate( savedInstanceState );
@@ -20,11 +30,14 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById( R.id.toolbar );
         setSupportActionBar( toolbar );
 
+        MoPub.initializeSdk( this, new SdkConfiguration.Builder( "b195f8dd8ded45fe847ad89ed1d016da" )
+            .withLogLevel( MoPubLog.LogLevel.INFO ).build(), () -> Log.d( TAG, "Finished initializing MoPub SDK" ) );
+
+        adView = findViewById( R.id.adview );
+//        adView.setAutorefreshEnabled( false );
+        adView.setAdUnitId( "b195f8dd8ded45fe847ad89ed1d016da" );
+
         BlockingConfig config = new BlockingConfig.Builder( "my-api-key" )
-            .setRequestTimeout( 3000 ) // set the max amount of time to wait before aborting a blocking request.
-            .setBlockingThreshold( 0.75 ) // set the blocking threshold. A range from 0.75-0.9 is recommended. See the API documentation for more info.
-            .setTTL( 1000 * 60 * 60 * 7 ) // set the TTL of the response cache, or set to 0 to disable the cache.
-            .setBlockingStrategy( new DefaultBlockingStrategy( 1000 * 60 * 60 * 24 ) )
             .build();
 
         PixalateBlocking.initialize( this, config );
@@ -44,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
             public void onError ( int errorCode, String message ) {
 
             }
-        } );
+        });
     }
 
     static class TestBlockingStrategy extends DefaultBlockingStrategy {

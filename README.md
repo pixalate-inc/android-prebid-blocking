@@ -16,7 +16,7 @@ Pixalate Pre-Bid Fraud Blocking SDK for Android
     - [Testing Responses](#testing-responses)
     - [Logging](#logging)
 
-The Pixalate Pre-Bid Blocking SDK gives easy access to pixalate's pre-bid fraud blocking APIs.
+The Pixalate Pre-Bid Blocking SDK gives easy access to Pixalate's pre-bid fraud blocking APIs.
 
 ## Installation & Integration
 
