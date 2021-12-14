@@ -51,9 +51,9 @@ An example configuration is below.
 
 ```java
 BlockingConfig config = new BlockingConfig.Builder("my-api-key")
-    .setBlockingThreshold( 0.75 ) // set the blocking threshold. A value in the range 0.75 - 0.9 is recommended.
+    .setBlockingThreshold( 0.75 ) // set the com.pixalate.android.blocking threshold. A value in the range 0.75 - 0.9 is recommended.
     .setTTL( 1000 * 60 * 60 * 7 ) // set the TTL of the response cache in milliseconds, or set to 0 to disable the cache.
-    .setRequestTimeout( 3000 ) // set the max amount of time to wait before aborting a blocking request. 
+    .setRequestTimeout( 3000 ) // set the max amount of time to wait before aborting a com.pixalate.android.blocking request. 
     .build();
 
 PixalateBlocking.initialize(this, config);
@@ -63,7 +63,7 @@ Parameter Name | Description | Default Value
 ---------------|-------------|-------------:
 blockingThreshold | The probability threshold at which blocking should occur.<br/>Normal range is anywhere from 0.75-0.9. | 0.75
 ttl               | How long results should be cached before making another request. | 8 hours
-requestTimeout    | How long requests are allowed to run before aborting. In the rare case of a network issue, this will help ensure the Pixalate SDK is not a bottleneck to running your ads. | 2 seconds
+requestTimeout    | How long requests are allowed to run before aborting. In the rare case of a network issue, this will help ensure the Pixalate SDK is not a bottleneck to running your ads. <br/>**Important Note:** This timeout applies to the entire request including strategy execution, not just the Pixalate API request. | 2 seconds
 blockingStrategy | The blocking strategy used to retrieve device parameters such as device id and IP address | DefaultBlockingStrategy
 
 ### Blocking Strategies
@@ -92,26 +92,21 @@ By default, the blocking strategy will mirror the TTL of the global config. This
 
 ```java
 BlockingConfig config = new BlockingConfig.Builder("my-api-key")
-    .setBlockingStrategy(new DefaultBlockingStrategy(1000 * 60 * 5)) // set the blocking strategy TTL to 5 minutes.
+    .setBlockingStrategy(new DefaultBlockingStrategy(1000 * 60 * 5)) // set the com.pixalate.android.blocking strategy TTL to 5 minutes.
 ```
 
 ### Custom Blocking Strategies
 
 If the default behavior is not working for your use case, you would like more control over how you retrieve the blocking parameters, or if you want to add or remove included parameters, you can create your own BlockingStrategy.
 
-Below is a contrived example of how to go about implementing such a strategy. As it only implements getIPv4 and returns null for the other methods, IPv4 is the only parameter that will be included in requests.
+Below is a contrived example of how to go about implementing such a strategy. `BlockingStrategy` will return `null` by default, so you only need to override the methods you intend to implement strategies for.
 
 ```java
 static class CustomBlockingStrategy extends BlockingStrategy {
     @Override
-    public String getDeviceID (Context context) {
-        return null;
-    }
-
-    @Override
-    public String getIPv4 (Context context) {
+    public String getIPv4 (Context context, BlockingStrategyCallback callback) {
         // The strategy implementations are executed in a background thread, so it is OK 
-        // to use blocking operations such as HttpsURLConnection.
+        // to use com.pixalate.android.blocking operations such as HttpsURLConnection.
 
         URL url = new URL("some-ipv4-source-url");
 
@@ -123,17 +118,7 @@ static class CustomBlockingStrategy extends BlockingStrategy {
 
         String ipv4 = /* do something with the response... */;
 
-        return ipv4;
-    }
-
-    @Override
-    public String getIPv6 (Context context) {
-        return null;
-    }
-
-    @Override
-    public String getUserAgent (Context context) {
-        return null;
+        callback.done( ipv4 );
     }
 }
 ```
@@ -149,8 +134,8 @@ static class TestBlockingStrategy extends DefaultBlockingStrategy {
     }
 
     @Override
-    public String getIPv4Impl (Context context) {
-        return null;
+    public String getIPv4Impl (Context context, BlockingStrategyCallback callback) {
+        callback.done(null);
     }
 }
 ```
@@ -164,7 +149,7 @@ static class TestBlockingStrategy extends DefaultBlockingStrategy {
 
 Once the SDK is set up, you can implement it into your ad loading logic. The SDK is framework and approach-agnostic.
 
-The basic pattern for performing a block request is as follows:
+The basic pattern for performing a block request is as follows. All listener methods are optional, but at the very least you should implement `onAllow`.
 
 ```java
 PixalateBlocking.requestBlockStatus(this, new BlockingStatusListener () {

@@ -1,4 +1,4 @@
-package com.pixalate.prebid;
+package com.pixalate.android.blocking;
 
 import org.junit.Test;
 

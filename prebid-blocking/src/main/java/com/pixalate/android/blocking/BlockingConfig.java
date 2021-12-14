@@ -1,46 +1,41 @@
-package com.pixalate.prebid;
+package com.pixalate.android.blocking;
 
 /**
- * Global configuration for the Pixalate SDK's blocking behavior.
+ * Global configuration for the Pixalate SDK's com.pixalate.android.blocking behavior.
  */
 public final class BlockingConfig {
-    private long ttl;
     private String apiKey;
-
+    private long ttl;
     private double blockingThreshold;
-
-//    boolean useSystemDeviceId;
-
     private int requestTimeout;
-
     private BlockingStrategy blockingStrategy;
 
     /**
      * Returns the configured Pixalate API key.
-     * @return The blocking threshold.
+     * @return The com.pixalate.android.blocking threshold.
      */
     public String getApiKey () {
         return apiKey;
     }
 
     /**
-     * Returns the configured blocking threshold, the value at or above which will trigger a block response.
-     * @return The blocking threshold.
+     * Returns the configured com.pixalate.android.blocking threshold, the value at or above which will trigger a block response.
+     * @return The com.pixalate.android.blocking threshold.
      */
     public double getBlockingThreshold () {
         return blockingThreshold;
     }
 
     /**
-     * Returns the configured blocking strategy, which provides critical device values for determining block probability.
-     * @return The blocking strategy.
+     * Returns the configured com.pixalate.android.blocking strategy, which provides critical device values for determining block probability.
+     * @return The com.pixalate.android.blocking strategy.
      */
     public BlockingStrategy getBlockingStrategy () {
         return blockingStrategy;
     }
 
     /**
-     * Returns the configured TTL for cached blocking requests.
+     * Returns the configured TTL for cached com.pixalate.android.blocking requests.
      * @return The TTL.
      */
     public long getTTL() {
@@ -82,7 +77,7 @@ public final class BlockingConfig {
          */
         public Builder setBlockingThreshold ( double blockingThreshold ) {
             if( blockingThreshold < 0.1 || blockingThreshold > 1 ) {
-                throw new IllegalArgumentException( "The blocking threshold must be between 0.1 and 1, inclusive." );
+                throw new IllegalArgumentException( "The com.pixalate.android.blocking threshold must be between 0.1 and 1, inclusive." );
             }
 
             this.blockingThreshold = blockingThreshold;
@@ -91,7 +86,7 @@ public final class BlockingConfig {
         }
 
         /**
-         * The maximum time a request for blocking information can take -- anything beyond this will count as a failed attempt and call the error listener.
+         * The maximum time a request for com.pixalate.android.blocking information can take -- anything beyond this will count as a failed attempt and call the error listener.
          * @param timeout The timeout value in milliseconds.
          * @return This builder instance for chaining purposes.
          */
@@ -103,7 +98,7 @@ public final class BlockingConfig {
         }
 
         /**
-         * The maximum time a cached blocking result should be stored in the cache.
+         * The maximum time a cached com.pixalate.android.blocking result should be stored in the cache.
          * A value of 0 disables the cache.
          * @param ttl The cache age value in milliseconds.
          * @return This builder instance for chaining purposes.
@@ -116,10 +111,10 @@ public final class BlockingConfig {
         }
 
         /**
-         * The strategy to use for retrieving important blocking parameters.
-         * Defaults to an implementation that provides some common use
-         * @param strategy
-         * @return
+         * The strategy to use for retrieving important com.pixalate.android.blocking parameters.
+         * Defaults to an implementation that provides the most common use case.
+         * @param strategy The strategy to implement.
+         * @return This builder instance for chaining purposes.
          */
         public Builder setBlockingStrategy ( BlockingStrategy strategy ) {
             this.blockingStrategy = strategy;
@@ -139,6 +134,12 @@ public final class BlockingConfig {
 
             if( this.blockingStrategy != null ) {
                 config.blockingStrategy = blockingStrategy;
+                if( blockingStrategy instanceof DefaultBlockingStrategy ) {
+                    DefaultBlockingStrategy defaultBlockingStrategy = (DefaultBlockingStrategy) blockingStrategy;
+                    if( defaultBlockingStrategy.getRequestTimeout() < 0 ) {
+                        defaultBlockingStrategy.setRequestTimeout( requestTimeout );
+                    }
+                }
             } else {
                 config.blockingStrategy = new DefaultBlockingStrategy( ttl );
             }
