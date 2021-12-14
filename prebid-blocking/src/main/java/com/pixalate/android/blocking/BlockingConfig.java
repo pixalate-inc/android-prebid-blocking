@@ -1,7 +1,5 @@
 package com.pixalate.android.blocking;
 
-import androidx.annotation.NonNull;
-
 /**
  * Global configuration for the Pixalate SDK's com.pixalate.android.blocking behavior.
  */
@@ -118,7 +116,7 @@ public final class BlockingConfig {
          * @param strategy The strategy to implement.
          * @return This builder instance for chaining purposes.
          */
-        public Builder setBlockingStrategy ( @NonNull BlockingStrategy strategy ) {
+        public Builder setBlockingStrategy ( BlockingStrategy strategy ) {
             this.blockingStrategy = strategy;
             return this;
         }

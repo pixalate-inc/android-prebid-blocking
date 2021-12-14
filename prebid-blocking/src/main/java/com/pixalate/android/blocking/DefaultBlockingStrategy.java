@@ -7,8 +7,6 @@ import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.JsonReader;
 
-import androidx.annotation.NonNull;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -292,7 +290,7 @@ public class DefaultBlockingStrategy implements BlockingStrategy {
      * @param context App context
      * @param callback The callback containing the fetched user agent, or null if none found.
      */
-    public void getUserAgentImpl ( @NonNull Context context, @NonNull BlockingStrategyCallback callback ) {
+    public void getUserAgentImpl ( Context context, BlockingStrategyCallback callback ) {
         callback.done( null );
     }
 }

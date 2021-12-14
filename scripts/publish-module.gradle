@@ -42,26 +42,26 @@ afterEvaluate {
                 pom {
                     name = PUBLISH_ARTIFACT_ID
                     description = 'Pixalate Pre-Bid Fraud Blocking SDK for Android'
-                    url = 'https://github.com/pixalate-inc/android-mobile.com.pixalate.android.blocking-com.pixalate.android.blocking'
+                    url = 'https://github.com/pixalate-inc/android-prebid-blocking'
                     licenses {
                         license {
                             name = 'GNU LPL 3.0'
-                            url = 'https://github.com/pixalate-inc/android-mobile.com.pixalate.android.blocking-com.pixalate.android.blocking/blob/master/LICENSE'
+                            url = 'https://github.com/pixalate-inc/android-prebid-blocking/blob/master/LICENSE'
                         }
                     }
 
                     developers {
                         developer {
-                            id = 'nateatpixalate'
-                            name = 'Nate Tessman'
-                            email = 'nate@pixalate.com'
+                            id = 'pixalate'
+                            name = 'Pixalate, Inc.'
+                            email = 'support@pixalate.com'
                         }
                     }
 
                     scm {
-                        connection = 'scm:git:github.com/getstream/stream-chat-android.git'
-                        developerConnection = 'scm:git:ssh://github.com/getstream/stream-chat-android.git'
-                        url = 'https://github.com/getstream/stream-chat-android/tree/main'
+                        connection = 'scm:git:github.com/pixalate-inc/android-prebid-blocking.git'
+                        developerConnection = 'scm:git:ssh://github.com/pixalate-inc/android-prebid-blocking.git'
+                        url = 'https://github.com/pixalate-inc/android-prebid-blocking/tree/master'
                     }
 
                 }

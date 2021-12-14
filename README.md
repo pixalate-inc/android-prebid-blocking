@@ -22,11 +22,11 @@ The Pixalate Pre-Bid Blocking SDK gives easy access to Pixalate's pre-bid fraud 
 
 ### Maven Central
 
-The latest version of the pre-built SDK is available in [Maven Central](http://example.com/XXXXXXX__PLACEHOLDER), and can be integrated into your project's `build.gradle`:
+The latest version of the pre-built SDK is available in [Maven Central](https://mvnrepository.com/artifact/com.pixalate.android/prebid-blocking), and can be integrated into your project's `build.gradle`:
 
 ```gradle
 dependencies {
-  implementation 'com.pixalate.android:prebid:1.0.0
+  implementation 'com.pixalate.android:prebid-blocking:0.1.1
 }
 ```
 
@@ -36,7 +36,7 @@ Or in your `pom.xml`:
 <dependency>
   <groupId>com.pixalate.android</groupId>
   <artifactId>mobile</artifactId>
-  <version>1.0.0</version>
+  <version>0.1.1</version>
   <type>aar</type>
 </dependency>
 ```
@@ -63,7 +63,7 @@ Parameter Name | Description | Default Value
 ---------------|-------------|-------------:
 blockingThreshold | The probability threshold at which blocking should occur.<br/>Normal range is anywhere from 0.75-0.9. | 0.75
 ttl               | How long results should be cached before making another request. | 8 hours
-requestTimeout    | How long requests are allowed to run before aborting. In the rare case of a network issue, this will help ensure the Pixalate SDK is not a bottleneck to running your ads. <br/>**Important Note:** This timeout applies to the entire request including strategy execution, not just the Pixalate API request. | 2 seconds
+requestTimeout    | How long requests are allowed to run before aborting. In the rare case of a network issue, this will help ensure the Pixalate SDK is not a bottleneck to running your ads. <br/>**Important Note:** This timeout applies to the entire request *including* strategy execution, not just the Pixalate API request. | 2 seconds
 blockingStrategy | The blocking strategy used to retrieve device parameters such as device id and IP address | DefaultBlockingStrategy
 
 ### Blocking Strategies

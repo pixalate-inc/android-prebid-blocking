@@ -7,8 +7,6 @@ import android.os.Handler;
 import android.util.JsonReader;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
@@ -63,7 +61,7 @@ public final class PixalateBlocking {
      * Updates the global configuration with a new value. You should not normally need to use this.
      * @param config The config to update with.
      */
-    public static void updateGlobalConfig ( @NonNull BlockingConfig config ) {
+    public static void updateGlobalConfig ( BlockingConfig config ) {
         if( !initialized ) {
             throw new IllegalStateException( "You must set the global com.pixalate.android.blocking config using `Pixalate.initialize` before updating the configuration." );
         }
@@ -110,7 +108,7 @@ public final class PixalateBlocking {
      * @param context An application context.
      * @param config The blocking config to initialize with.
      */
-    public static void initialize ( @NonNull Context context, @NonNull BlockingConfig config ) {
+    public static void initialize ( Context context, BlockingConfig config ) {
         PixalateBlocking.context = new WeakReference<>( context );
 
         initialized = true;
@@ -126,7 +124,7 @@ public final class PixalateBlocking {
      *
      * @param listener   The listener will be called with the results of the request.
      */
-    public static void requestBlockStatus ( @NonNull BlockingStatusListener listener ) throws IllegalStateException {
+    public static void requestBlockStatus ( BlockingStatusListener listener ) throws IllegalStateException {
         requestBlockStatus( BlockingMode.DEFAULT, listener );
     }
 
@@ -139,7 +137,7 @@ public final class PixalateBlocking {
      * @param mode       The BlockingMode to utilize.
      * @param listener   The listener will be called with the results of the request.
      */
-    public static void requestBlockStatus ( @NonNull BlockingMode mode, @NonNull BlockingStatusListener listener ) throws IllegalStateException {
+    public static void requestBlockStatus ( BlockingMode mode, BlockingStatusListener listener ) throws IllegalStateException {
         if( !initialized ) {
             throw new IllegalStateException( "You must set the global com.pixalate.android.blocking config using `Pixalate.initialize` before requesting block status." );
         }
@@ -443,7 +441,6 @@ public final class PixalateBlocking {
             }
         }
 
-        @NonNull
         private static String buildUrl ( String deviceId, String ipv4, /* String ipv6, */ String userAgent ) {
             Uri.Builder uri = Uri.parse( baseFraudURL )
                 .buildUpon();
