@@ -1,5 +1,7 @@
 package com.pixalate.android.blocking;
 
+import androidx.annotation.NonNull;
+
 /**
  * Global configuration for the Pixalate SDK's com.pixalate.android.blocking behavior.
  */
@@ -86,7 +88,7 @@ public final class BlockingConfig {
         }
 
         /**
-         * The maximum time a request for com.pixalate.android.blocking information can take -- anything beyond this will count as a failed attempt and call the error listener.
+         * The maximum time a request can take, including any strategy executions -- anything beyond this will count as a failed attempt and call the error listener.
          * @param timeout The timeout value in milliseconds.
          * @return This builder instance for chaining purposes.
          */
@@ -98,7 +100,7 @@ public final class BlockingConfig {
         }
 
         /**
-         * The maximum time a cached com.pixalate.android.blocking result should be stored in the cache.
+         * The maximum time a cached result should be stored in the cache.
          * A value of 0 disables the cache.
          * @param ttl The cache age value in milliseconds.
          * @return This builder instance for chaining purposes.
@@ -116,7 +118,7 @@ public final class BlockingConfig {
          * @param strategy The strategy to implement.
          * @return This builder instance for chaining purposes.
          */
-        public Builder setBlockingStrategy ( BlockingStrategy strategy ) {
+        public Builder setBlockingStrategy ( @NonNull BlockingStrategy strategy ) {
             this.blockingStrategy = strategy;
             return this;
         }

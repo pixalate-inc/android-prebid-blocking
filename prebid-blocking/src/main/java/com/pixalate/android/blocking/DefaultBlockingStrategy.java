@@ -61,10 +61,10 @@ public class DefaultBlockingStrategy implements BlockingStrategy {
         this.cacheTTL = cacheTTL;
     }
 
-    public int getRequestTimeout() {
+    public int getRequestTimeout () {
         return Math.max( requestTimeout, 0 );
     }
-    public void setRequestTimeout( int requestTimeout ) {
+    public void setRequestTimeout ( int requestTimeout ) {
         if( requestTimeout < 0 ) throw new InvalidParameterException( "Request timeout cannot be less than 0." );
         this.requestTimeout = requestTimeout;
     }
@@ -94,6 +94,12 @@ public class DefaultBlockingStrategy implements BlockingStrategy {
         }
     }
 
+    /**
+     * Implement a device ID strategy using this method to preserve default caching behavior.
+     * This method is not meant to be called directly by user code.
+     * @param context  App context
+     * @param callback The callback containing the fetched device ID, or null if none found.
+     */
     @SuppressLint( { "MissingPermission", "HardwareIds" } )
     public void getDeviceIDImpl ( Context context, BlockingStrategyCallback callback ) {
         try {
@@ -170,6 +176,12 @@ public class DefaultBlockingStrategy implements BlockingStrategy {
         }
     }
 
+    /**
+     * Implement an IPv4 address strategy using this method to preserve default caching behavior.
+     * This method is not meant to be called directly by user code.
+     * @param context App context
+     * @param callback The callback containing the fetched IPv4 address, or null if none found.
+     */
     public void getIPv4Impl ( Context context, BlockingStrategyCallback callback ) {
         String ip = null;
 
@@ -274,6 +286,12 @@ public class DefaultBlockingStrategy implements BlockingStrategy {
         }
     }
 
+    /**
+     * Implement a user agent strategy using this method to preserve default caching behavior.
+     * This method is not meant to be called directly by user code.
+     * @param context App context
+     * @param callback The callback containing the fetched user agent, or null if none found.
+     */
     public void getUserAgentImpl ( @NonNull Context context, @NonNull BlockingStrategyCallback callback ) {
         callback.done( null );
     }

@@ -3,12 +3,13 @@ package com.pixalate.android.blocking;
 import android.content.Context;
 
 /**
- * An interface
+ * Allows for custom implementations of fetching blocking parameters, if the default
+ * implementation is not suitable for your use case.
  */
 public interface BlockingStrategy {
     /**
      * Gets the device ID associated with the device.
-     *
+     * This method is not meant to be called directly by user code.
      * @param context  App context
      * @param callback The callback containing the fetched device ID, or null if none found.
      */
@@ -18,6 +19,7 @@ public interface BlockingStrategy {
 
     /**
      * Gets the IPv4 address associated with the device.
+     * This method is not meant to be called directly by user code.
      * @param context App context
      * @param callback The callback containing the fetched IPv4 address, or null if none found.
      */
@@ -27,6 +29,7 @@ public interface BlockingStrategy {
 
 //    /**
 //     * Gets the IPv6 address associated with the device.
+//     * This method is not meant to be called directly by user code.
 //     * @param context App context
 //     * @param callback The callback containing the fetched IPv6 address, or null if none found.
 //     */
@@ -36,6 +39,7 @@ public interface BlockingStrategy {
 
     /**
      * Gets the browser user agent associated with the device.
+     * This method is not meant to be called directly by user code.
      * @param context App context
      * @param callback The callback containing the fetched user agent, or null if none found.
      */

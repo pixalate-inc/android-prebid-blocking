@@ -27,29 +27,6 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.HttpsURLConnection;
 
 public final class PixalateBlocking {
-    public enum LogLevel {
-        NONE( 0 ),
-        INFO( 1 ),
-        ERROR( 2 ),
-        WARNING( 3 ),
-        DEBUG( 4 );
-
-        private final int severity;
-
-        LogLevel ( int severity ) {
-            this.severity = severity;
-        }
-
-        public boolean includes ( LogLevel other ) {
-            return this.severity >= other.severity;
-        }
-    }
-
-    public enum BlockingMode {
-        DEFAULT,
-        ALWAYS_BLOCK,
-        NEVER_BLOCK
-    }
 
     static final String TAG = "PixalateBlocking";
 
@@ -57,15 +34,51 @@ public final class PixalateBlocking {
 
     static LogLevel logLevel = LogLevel.INFO;
 
+    static HashMap<BlockingCacheParameters,BlockingResult> cachedResults;
+    static BlockingConfig globalConfig;
+    static boolean initialized;
+    static WeakReference<Context> context;
+    static Executor executor;
+    final static ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>( 4 );
+
     PixalateBlocking () {}
 
     /**
      * Sets the level to which debug statements should be logged to the console.
-     *
      * @param level The LogLevel to use.
      */
     public static void setLogLevel ( LogLevel level ) {
         logLevel = level;
+    }
+
+    /**
+     * Gets the current log level.
+     * @return The current log level.
+     */
+    public static LogLevel getLogLevel () {
+        return logLevel;
+    }
+
+    /**
+     * Updates the global configuration with a new value. You should not normally need to use this.
+     * @param config The config to update with.
+     */
+    public static void updateGlobalConfig ( @NonNull BlockingConfig config ) {
+        if( !initialized ) {
+            throw new IllegalStateException( "You must set the global com.pixalate.android.blocking config using `Pixalate.initialize` before updating the configuration." );
+        }
+
+        globalConfig = config;
+
+        executor = new ThreadPoolExecutor( 2, 4, Math.max(globalConfig.getRequestTimeout(),1000), TimeUnit.MILLISECONDS, queue );
+    }
+
+    /**
+     * Returns the currently set global configuration.
+     * @return The active global configuration, or null if the SDK has not been initialized.
+     */
+    public static BlockingConfig getGlobalConfig () {
+        return globalConfig;
     }
 
     static void LogInfo ( String message ) {
@@ -92,14 +105,6 @@ public final class PixalateBlocking {
         }
     }
 
-    static HashMap<BlockingCacheParameters,BlockingResult> cachedResults;
-
-    static BlockingConfig globalConfig;
-    static boolean initialized;
-    static WeakReference<Context> context;
-    static Executor executor;
-    final static ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>( 4 );
-
     /**
      * Initializes the Pixalate Pre-bid Blocking SDK.
      * @param context An application context.
@@ -112,28 +117,6 @@ public final class PixalateBlocking {
 
         cachedResults = new HashMap<>();
         updateGlobalConfig( config );
-    }
-
-    /**
-     * Updates the global configuration with a new value. You should not normally need to use this.
-     * @param config The config to update with.
-     */
-    private static void updateGlobalConfig ( @NonNull BlockingConfig config ) {
-        if( !initialized ) {
-            throw new IllegalStateException( "You must set the global com.pixalate.android.blocking config using `Pixalate.initialize` before updating the configuration." );
-        }
-
-        globalConfig = config;
-
-        executor = new ThreadPoolExecutor( 2, 4, Math.max(globalConfig.getRequestTimeout(),1000), TimeUnit.MILLISECONDS, queue );
-    }
-
-    /**
-     * Returns the currently set global configuration.
-     * @return The active global configuration, or null if the SDK has not been initialized.
-     */
-    public static BlockingConfig getGlobalConfig () {
-        return globalConfig;
     }
 
     /**
@@ -157,8 +140,6 @@ public final class PixalateBlocking {
      * @param listener   The listener will be called with the results of the request.
      */
     public static void requestBlockStatus ( @NonNull BlockingMode mode, @NonNull BlockingStatusListener listener ) throws IllegalStateException {
-        SendPreBidBlockingRequestTask task = new SendPreBidBlockingRequestTask( globalConfig.getTTL(), globalConfig.getBlockingThreshold(), listener );
-
         if( !initialized ) {
             throw new IllegalStateException( "You must set the global com.pixalate.android.blocking config using `Pixalate.initialize` before requesting block status." );
         }
@@ -203,7 +184,39 @@ public final class PixalateBlocking {
             });
         });
 
+        SendPreBidBlockingRequestTask task = new SendPreBidBlockingRequestTask( globalConfig.getTTL(), globalConfig.getBlockingThreshold(), listener );
         task.execute( new BlockingRequestParameters( latch, cacheParams, globalConfig.getApiKey(), globalConfig.getRequestTimeout(), mode ) );
+    }
+
+    /**
+     * Available log granularity levels. Set the global Pixalate log level by calling {@link PixalateBlocking#setLogLevel(LogLevel)}.
+     */
+    public enum LogLevel {
+        NONE( 0 ),
+        INFO( 1 ),
+        ERROR( 2 ),
+        WARNING( 3 ),
+        DEBUG( 4 );
+
+        private final int severity;
+
+        LogLevel ( int severity ) {
+            this.severity = severity;
+        }
+
+        public boolean includes ( LogLevel other ) {
+            return this.severity >= other.severity;
+        }
+    }
+
+    /**
+     * Various blocking modes for testing. You can pass this into the {@link PixalateBlocking#requestBlockStatus(BlockingMode, BlockingStatusListener)}
+     * overload to test your ad loads given guaranteed blocking states.
+     */
+    public enum BlockingMode {
+        DEFAULT,
+        ALWAYS_BLOCK,
+        NEVER_BLOCK
     }
 
     /**
