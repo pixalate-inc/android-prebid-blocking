@@ -1,17 +1,24 @@
 package com.pixalate.mobile;
 
-import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 
-import com.pixalate.prebid.BlockingStatusListener;
-import com.pixalate.prebid.DefaultBlockingStrategy;
-import com.pixalate.prebid.PixalateBlocking;
-import com.pixalate.prebid.BlockingConfig;
+import com.mopub.common.MoPub;
+import com.mopub.common.SdkConfiguration;
+import com.mopub.common.logging.MoPubLog;
+import com.mopub.mobileads.MoPubView;
+import com.pixalate.android.blocking.BlockingStatusListener;
+import com.pixalate.android.blocking.PixalateBlocking;
+import com.pixalate.android.blocking.BlockingConfig;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity {
+
+    static final String TAG = "PixalateBlockingExample";
+
+    private MoPubView adView;
 
     @Override
     protected void onCreate ( Bundle savedInstanceState ) {
@@ -20,42 +27,41 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById( R.id.toolbar );
         setSupportActionBar( toolbar );
 
-        BlockingConfig config = new BlockingConfig.Builder( "my-api-key" )
-            .setRequestTimeout( 3000 ) // set the max amount of time to wait before aborting a blocking request.
-            .setBlockingThreshold( 0.75 ) // set the blocking threshold. A range from 0.75-0.9 is recommended. See the API documentation for more info.
-            .setTTL( 1000 * 60 * 60 * 7 ) // set the TTL of the response cache, or set to 0 to disable the cache.
-            .setBlockingStrategy( new DefaultBlockingStrategy( 1000 * 60 * 60 * 24 ) )
-            .build();
+        MoPub.initializeSdk( this, new SdkConfiguration.Builder( "b195f8dd8ded45fe847ad89ed1d016da" )
+                .withLogLevel( MoPubLog.LogLevel.INFO ).build(), () -> {
 
-        PixalateBlocking.initialize( this, config );
+            BlockingConfig config = new BlockingConfig.Builder("your-api-key")
+                    .setBlockingThreshold(0.75)
+                    .build();
 
-        PixalateBlocking.requestBlockStatus( new BlockingStatusListener() {
-            @Override
-            public void onBlock () {
+            PixalateBlocking.initialize(this, config);
 
-            }
+            PixalateBlocking.setLogLevel( PixalateBlocking.LogLevel.DEBUG );
 
-            @Override
-            public void onAllow () {
+            PixalateBlocking.requestBlockStatus(new BlockingStatusListener() {
+                @Override
+                public void onBlock () {
+                    Log.d( TAG, "Blocked ad load." );
+                }
 
-            }
+                @Override
+                public void onAllow () {
+                    // load your ads here!
+                    adView.loadAd();
+                }
 
-            @Override
-            public void onError ( int errorCode, String message ) {
+                @Override
+                public void onError ( int errorCode, String message ) {
+                    // load your ads here, too.
+                    adView.loadAd();
+                }
+            });
+        });
 
-            }
-        } );
-    }
+        adView = findViewById( R.id.adview );
+//        adView.setAutorefreshEnabled( false );
+        adView.setAdUnitId( "b195f8dd8ded45fe847ad89ed1d016da" );
 
-    static class TestBlockingStrategy extends DefaultBlockingStrategy {
 
-        public TestBlockingStrategy ( long cacheTTL ) {
-            super( cacheTTL );
-        }
-
-        @Override
-        public String getIPv4Impl ( Context context ) {
-            return null;
-        }
     }
 }
