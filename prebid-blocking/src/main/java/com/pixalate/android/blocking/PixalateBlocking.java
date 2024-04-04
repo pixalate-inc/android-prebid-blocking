@@ -28,7 +28,7 @@ public final class PixalateBlocking {
 
     static final String TAG = "PixalateBlocking";
 
-    private static final String baseFraudURL = "https://api.pixalate.com/api/v2/fraud?";
+    private static final String baseFraudURL = "https://fraud-api.pixalate.com/api/v2/fraud?";
 
     static LogLevel logLevel = LogLevel.INFO;
 
@@ -168,12 +168,12 @@ public final class PixalateBlocking {
             });
         });
 
-//        executor.execute( () -> {
-//            strategy.getIPv6( context, result -> {
-//                cacheParams.ipv6 = result;
-//                latch.countDown();
-//            });
-//        });
+        executor.execute( () -> {
+            strategy.getIPv6( ctx, result -> {
+                cacheParams.ipv6 = result;
+                latch.countDown();
+            });
+        });
 
         executor.execute( () -> {
             strategy.getUserAgent( ctx, result -> {
@@ -272,7 +272,7 @@ public final class PixalateBlocking {
 
     private static class BlockingCacheParameters {
         String ipv4;
-//        String ipv6;
+        String ipv6;
         String deviceId;
         String userAgent;
         BlockingMode mode;
@@ -283,7 +283,7 @@ public final class PixalateBlocking {
             if (o == null || getClass() != o.getClass()) return false;
             BlockingCacheParameters parameters = (BlockingCacheParameters) o;
             return Objects.equals(ipv4,parameters.ipv4) &&
-//                Objects.equals(ipv6, parameters.ipv6) &&
+                Objects.equals(ipv6, parameters.ipv6) &&
                 Objects.equals(deviceId,parameters.deviceId) &&
                 Objects.equals(userAgent,parameters.userAgent) &&
                 Objects.equals(mode, parameters.mode);
@@ -294,7 +294,7 @@ public final class PixalateBlocking {
             int result = 1;
 
             result = 31 * result + (ipv4 == null ? 0 : ipv4.hashCode());
-//            result = 31 * result + (ipv6 == null ? 0 : ipv6.hashCode());
+            result = 31 * result + (ipv6 == null ? 0 : ipv6.hashCode());
             result = 31 * result + (deviceId == null ? 0 : deviceId.hashCode());
             result = 31 * result + (userAgent == null ? 0 : userAgent.hashCode());
             result = 31 * result + (mode == null ? 0 : mode.hashCode());
@@ -368,7 +368,7 @@ public final class PixalateBlocking {
 
                 LogDebug( "Remaining timeout after strategies: " + timeout );
 
-                URL url = new URL( buildUrl(cacheParams.deviceId, cacheParams.ipv4, /* cacheParams.ipv6, */ cacheParams.userAgent ) );
+                URL url = new URL( buildUrl(cacheParams.deviceId, cacheParams.ipv4, cacheParams.ipv6, cacheParams.userAgent ) );
 
                 LogDebug( "Sent URL: " + url.toString() );
 
@@ -441,7 +441,7 @@ public final class PixalateBlocking {
             }
         }
 
-        private static String buildUrl ( String deviceId, String ipv4, /* String ipv6, */ String userAgent ) {
+        private static String buildUrl ( String deviceId, String ipv4, String ipv6, String userAgent ) {
             Uri.Builder uri = Uri.parse( baseFraudURL )
                 .buildUpon();
 
@@ -449,9 +449,9 @@ public final class PixalateBlocking {
                 uri.appendQueryParameter( "ip", ipv4 );
             }
 
-//            if( ipv6 != null ) {
-//                uri.appendQueryParameter( "ip", ipv6 );
-//            }
+            if( ipv6 != null ) {
+                uri.appendQueryParameter( "ip", ipv6 );
+            }
 
             if( userAgent != null ) {
                 uri.appendQueryParameter( "userAgent", userAgent );

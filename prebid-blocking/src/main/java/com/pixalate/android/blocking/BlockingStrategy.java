@@ -27,15 +27,15 @@ public interface BlockingStrategy {
         callback.done( null );
     }
 
-//    /**
-//     * Gets the IPv6 address associated with the device.
-//     * This method is not meant to be called directly by user code.
-//     * @param context App context
-//     * @param callback The callback containing the fetched IPv6 address, or null if none found.
-//     */
-//    default void getIPv6 ( Context context, BlockingStrategyCallback callback ) {
-//        callback.done( null );
-//    }
+    /**
+     * Gets the IPv6 address associated with the device.
+     * This method is not meant to be called directly by user code.
+     * @param context App context
+     * @param callback The callback containing the fetched IPv6 address, or null if none found.
+     */
+    default void getIPv6 ( Context context, BlockingStrategyCallback callback ) {
+        callback.done( null );
+    }
 
     /**
      * Gets the browser user agent associated with the device.

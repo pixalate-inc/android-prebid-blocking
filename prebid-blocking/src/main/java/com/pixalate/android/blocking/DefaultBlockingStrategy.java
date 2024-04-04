@@ -184,7 +184,7 @@ public class DefaultBlockingStrategy implements BlockingStrategy {
         String ip = null;
 
         try {
-            String ipEndpoint = "https://get-ipv4.adrta.com";
+            String ipEndpoint = "https://get-ipv4.adrta.com/ipv4";
             URL url = new URL( ipEndpoint );
 
             HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
@@ -228,35 +228,85 @@ public class DefaultBlockingStrategy implements BlockingStrategy {
         }
     }
 
-//    @Override
-//    public final void getIPv6 ( Context context, BlockingStrategyCallback callback ) {
-//        if( cacheTTL > 0 ) {
-//            PixalateBlocking.LogDebug( "Checking IPv6 address cache..." );
-//            long now = new Date().getTime();
-//            if( nextIPv6FetchTime > now && cachedIPv6 != null ) {
-//                PixalateBlocking.LogDebug( "Using cached IPv6 address: " + cachedIPv6 );
-//                callback.done( cachedIPv6 );
-//            } else {
-//                PixalateBlocking.LogDebug( "Cache missed, fetching IPv6 address..." );
-//                getIPv6Impl( context, ( result ) -> {
-//                    PixalateBlocking.LogDebug( "Fetched IPv6 address: " + result );
-//                    if( result != null ) {
-//                        cachedIPv6 = result;
-//                        nextIPv6FetchTime = now + cacheTTL;
-//                    }
-//
-//                    callback.done( result );
-//                });
-//            }
-//        } else {
-//            PixalateBlocking.LogDebug( "Cache is disabled, fetching IPv6 address..." );
-//            getIPv6Impl( context, callback );
-//        }
-//    }
-//
-//    public void getIPv6Impl ( Context context, BlockingStrategyCallback callback ) {
-//        callback.done( null );
-//    }
+    @Override
+    public final void getIPv6 ( Context context, BlockingStrategyCallback callback ) {
+        if( cacheTTL > 0 ) {
+            PixalateBlocking.LogDebug( "Checking IPv6 address cache..." );
+            long now = new Date().getTime();
+            if( nextIPv6FetchTime > now && cachedIPv6 != null ) {
+                PixalateBlocking.LogDebug( "Using cached IPv6 address: " + cachedIPv6 );
+                callback.done( cachedIPv6 );
+            } else {
+                PixalateBlocking.LogDebug( "Cache missed, fetching IPv6 address..." );
+                getIPv6Impl( context, ( result ) -> {
+                    PixalateBlocking.LogDebug( "Fetched IPv6 address: " + result );
+                    if( result != null ) {
+                        cachedIPv6 = result;
+                        nextIPv6FetchTime = now + cacheTTL;
+                    }
+
+                    callback.done( result );
+                });
+            }
+        } else {
+            PixalateBlocking.LogDebug( "Cache is disabled, fetching IPv6 address..." );
+            getIPv6Impl( context, callback );
+        }
+    }
+
+    /**
+     * Implement an IPv6 address strategy using this method to preserve default caching behavior.
+     * This method is not meant to be called directly by user code.
+     * @param context App context
+     * @param callback The callback containing the fetched IPv6 address, or null if none found.
+     */
+    public void getIPv6Impl ( Context context, BlockingStrategyCallback callback ) {
+        String ip = null;
+
+        try {
+            String ipEndpoint = "https://ipv6.adrta.com/ipv6";
+            URL url = new URL( ipEndpoint );
+
+            HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+
+            connection.setRequestMethod( "GET" );
+            if( requestTimeout > 0 ) {
+                connection.setConnectTimeout( requestTimeout );
+            }
+
+            int connStatus = connection.getResponseCode();
+
+            if( connStatus != 200 ) {
+                throw new PixalateBlocking.HTTPException( connStatus, "Failed to fetch IP address" );
+            }
+
+            InputStream in = connection.getInputStream();
+
+            JsonReader reader = new JsonReader( new InputStreamReader( in, StandardCharsets.UTF_8 ) );
+
+            reader.beginObject();
+
+            while( reader.hasNext() ) {
+                String name = reader.nextName();
+
+                if( "ip".equals( name ) ) {
+                    ip = reader.nextString();
+                    reader.close();
+                    break;
+                } else {
+                    reader.skipValue();
+                }
+            }
+
+            in.close();
+        } catch ( MalformedURLException exc ) {
+            PixalateBlocking.LogInfo( "Failed to create IPv6 URL." );
+        } catch ( IOException | PixalateBlocking.HTTPException exc ) {
+            PixalateBlocking.LogError( "Failed to fetch IPv6 Address" );
+        } finally {
+            callback.done( ip );
+        }
+    }
 
     @Override
     public final void getUserAgent ( Context context, BlockingStrategyCallback callback ) {

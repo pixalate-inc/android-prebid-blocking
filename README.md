@@ -80,7 +80,7 @@ The SDK will retrieve the external IPv4 address of the device by utilizing a Pix
 
 #### IPv6 Address
 
-The pre-bid fraud API will support IPv6 soon, and default support for IPv6 will be integrated into the SDK at that time. 
+The SDK will retrieve the external IPv6 address of the device by utilizing a Pixalate endpoint. 
 
 #### User Agent
 
