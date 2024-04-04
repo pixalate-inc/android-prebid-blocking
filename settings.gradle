@@ -1,3 +1,2 @@
-include ':prebid-blocking'
 include ':app'
-rootProject.name = "Mobile SDK"
+include ':prebid-blocking'
